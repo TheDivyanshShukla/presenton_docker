@@ -28,6 +28,11 @@ const setupUserConfigFromEnv = () => {
   if (fs.existsSync(userConfigPath)) {
     existingConfig = JSON.parse(fs.readFileSync(userConfigPath, 'utf8'));
   }
+
+  if (!['ollama', 'openai', 'google'].includes(existingConfig.LLM)) {
+    existingConfig.LLM = undefined;
+  }
+
   const userConfig = {
     LLM: process.env.LLM || existingConfig.LLM,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY || existingConfig.OPENAI_API_KEY,

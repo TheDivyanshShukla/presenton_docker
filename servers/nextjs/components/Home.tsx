@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/accordion";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { handleSaveLLMConfig, hasValidLLMConfig } from "@/utils/storeHelpers";
+import { handleSaveLLMConfig } from "@/utils/storeHelpers";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "./ui/select";
 
 interface ModelOption {

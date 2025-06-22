@@ -38,6 +38,9 @@ class PresentationOutlinesGenerateHandler:
                 presentation.language,
                 presentation.summary,
             )
+            presentation_content.slides = presentation_content.slides[
+                : presentation.n_slides
+            ]
 
             presentation.title = presentation_content.title
             presentation.outlines = [

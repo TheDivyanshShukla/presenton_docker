@@ -35,7 +35,9 @@ export async function POST(request: Request) {
   const mergedConfig: LLMConfig = {
     LLM: userConfig.LLM || existingConfig.LLM,
     OPENAI_API_KEY: userConfig.OPENAI_API_KEY || existingConfig.OPENAI_API_KEY,
-    GOOGLE_API_KEY: userConfig.GOOGLE_API_KEY || existingConfig.GOOGLE_API_KEY
+    GOOGLE_API_KEY: userConfig.GOOGLE_API_KEY || existingConfig.GOOGLE_API_KEY,
+    OLLAMA_MODEL: userConfig.OLLAMA_MODEL || existingConfig.OLLAMA_MODEL,
+    PEXELS_API_KEY: userConfig.PEXELS_API_KEY || existingConfig.PEXELS_API_KEY,
   }
   fs.writeFileSync(userConfigPath, JSON.stringify(mergedConfig))
   return NextResponse.json(mergedConfig)

@@ -36,6 +36,7 @@ prompt = ChatPromptTemplate.from_messages(
                 - Each presentation should have its own unique flow and rhythm.
                 - Do not select type **3** for any slide.
                 - Do not select type **5** or **9** if outline does not have table.
+                - Select type for {n_slides} slides.
 
                 **Go through notes and steps and make sure they are all followed. Rule breaks are strictly not allowed.**
             """,
@@ -43,8 +44,6 @@ prompt = ChatPromptTemplate.from_messages(
         (
             "human",
             """
-            Number of slides: {n_slides}
-
             {data}
             """,
         ),

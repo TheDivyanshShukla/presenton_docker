@@ -1,4 +1,5 @@
 import os
+import random
 import uuid
 
 from fastapi import HTTPException
@@ -11,8 +12,10 @@ from api.services.logging import LoggingService
 from api.sql_models import KeyValueSqlModel, PresentationSqlModel
 from api.services.database import get_sql_session
 from api.utils import is_ollama_selected
-from ppt_config_generator.models import PresentationMarkdownModel
+from ppt_config_generator.models import PresentationMarkdownModel, SlideStructureModel
 from ppt_config_generator.structure_generator import generate_presentation_structure
+
+SLIDES_WITHOUT_GRAPH = [2, 4, 6, 7, 8]
 
 
 class PresentationGenerateDataHandler:
@@ -50,13 +53,14 @@ class PresentationGenerateDataHandler:
                         }
                     )
                 )
-
                 supports_graph = True
                 if is_ollama_selected():
                     model = SUPPORTED_OLLAMA_MODELS[os.getenv("OLLAMA_MODEL")]
                     supports_graph = model.supports_graph
 
                 for each in presentation_structure.slides:
+                    if each.type > 9:
+                        each.type = random.choice(SLIDES_WITHOUT_GRAPH)
                     if each.type == 3:
                         each.type = 6
                     if not supports_graph:
@@ -64,6 +68,25 @@ class PresentationGenerateDataHandler:
                             each.type = 1
                         elif each.type == 9:
                             each.type = 6
+
+                presentation_outlines_len = len(presentation.outlines)
+                missing_slides_len = presentation_outlines_len - len(
+                    presentation_structure.slides
+                )
+                if missing_slides_len > 0:
+                    for index in range(missing_slides_len):
+                        selected_type = (
+                            random.choice(SLIDES_WITHOUT_GRAPH)
+                            if index != missing_slides_len - 1
+                            else 1
+                        )
+                        presentation_structure.slides.append(
+                            SlideStructureModel(type=selected_type)
+                        )
+                elif missing_slides_len < 0:
+                    presentation_structure.slides = presentation_structure.slides[
+                        :presentation_outlines_len
+                    ]
 
                 presentation.structure = presentation_structure.model_dump(mode="json")
                 sql_session.commit()

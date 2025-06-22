@@ -4,6 +4,13 @@ from api.services.logging import LoggingService
 
 
 SUPPORTED_OLLAMA_MODELS = {
+    "llama3.2:3b": OllamaModelMetadata(
+        label="Llama 3.2:3b",
+        value="llama3.2:3b",
+        description="❌ Graphs not supported.",
+        size="2GB",
+        supports_graph=False,
+    ),
     "llama3.1:8b": OllamaModelMetadata(
         label="Llama 3.1:8b",
         value="llama3.1:8b",
