@@ -1,7 +1,7 @@
 import os
 from urllib.parse import unquote, urlparse
 import uuid
-from api.utils import download_files, replace_file_name
+from api.utils.utils import download_files, replace_file_name
 from ppt_generator.models.pptx_models import PptxPictureBoxModel
 
 

@@ -1,5 +1,6 @@
 from typing import List
 import uuid, aiohttp
+from fastapi import HTTPException
 from api.models import LogMetadata
 from api.routers.presentation.handlers.export_as_pptx import ExportAsPptxHandler
 from api.routers.presentation.handlers.upload_files import UploadFilesHandler
@@ -13,15 +14,19 @@ from api.routers.presentation.models import (
     PresentationPathAndEditPath,
 )
 from api.services.database import get_sql_session
-from api.services.instances import temp_file_service
+from api.services.instances import TEMP_FILE_SERVICE
 from api.services.logging import LoggingService
 from api.sql_models import PresentationSqlModel, SlideSqlModel
-from api.utils import get_presentation_dir
+from api.utils.utils import get_presentation_dir, is_ollama_selected
 from document_processor.loader import DocumentsLoader
 from ppt_config_generator.document_summary_generator import generate_document_summary
+from ppt_config_generator.models import PresentationMarkdownModel
 from ppt_config_generator.ppt_outlines_generator import generate_ppt_content
 from ppt_generator.generator import generate_presentation
-from ppt_generator.models.llm_models import LLMPresentationModel
+from ppt_generator.models.llm_models import (
+    LLM_CONTENT_TYPE_MAPPING,
+    LLMPresentationModel,
+)
 from langchain_core.output_parsers import JsonOutputParser
 
 from ppt_generator.models.slide_model import SlideModel
@@ -36,13 +41,18 @@ class GeneratePresentationHandler(FetchAssetsOnPresentationGenerationMixin):
         self.presentation_id = presentation_id
         self.data = data
 
-        self.temp_dir = temp_file_service.create_temp_dir()
+        self.temp_dir = TEMP_FILE_SERVICE.create_temp_dir()
         self.presentation_dir = get_presentation_dir(self.presentation_id)
 
     def __del__(self):
-        temp_file_service.cleanup_temp_dir(self.temp_dir)
+        TEMP_FILE_SERVICE.cleanup_temp_dir(self.temp_dir)
 
     async def post(self, logging_service: LoggingService, log_metadata: LogMetadata):
+        if is_ollama_selected():
+            raise HTTPException(
+                status_code=400,
+                detail="Ollama is not currently supported for this endpoint",
+            )
 
         documents_and_images_path = await UploadFilesHandler(
             documents=self.data.documents,
@@ -71,9 +81,11 @@ class GeneratePresentationHandler(FetchAssetsOnPresentationGenerationMixin):
         print("Generating Presentation")
         presentation_text = (
             await generate_presentation(
-                presentation_content.title,
-                presentation_content.notes,
-                presentation_content.slides,
+                PresentationMarkdownModel(
+                    title=presentation_content.title,
+                    slides=presentation_content.slides,
+                    notes=presentation_content.notes,
+                )
             )
         ).content
 
@@ -82,10 +94,15 @@ class GeneratePresentationHandler(FetchAssetsOnPresentationGenerationMixin):
         presentation_json = output_parser.parse(presentation_text)
 
         slide_models: List[SlideModel] = []
-        for i, content in enumerate(presentation_json["slides"]):
-            content["index"] = i
-            content["presentation"] = self.presentation_id
-            slide_model = SlideModel(**content)
+        for i, slide in enumerate(presentation_json["slides"]):
+            slide["index"] = i
+            slide["presentation"] = self.presentation_id
+            slide["content"] = (
+                LLM_CONTENT_TYPE_MAPPING[slide["type"]](**slide["content"])
+                .to_content()
+                .model_dump(mode="json")
+            )
+            slide_model = SlideModel(**slide)
             slide_models.append(slide_model)
 
         print("-" * 40)

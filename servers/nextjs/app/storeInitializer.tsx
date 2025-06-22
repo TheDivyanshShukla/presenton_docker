@@ -43,6 +43,15 @@ export function StoreInitializer({ children }: { children: React.ReactNode }) {
       dispatch(setLLMConfig(llmConfig));
       const isValid = hasValidLLMConfig(llmConfig);
       if (isValid) {
+        // Check if the selected Ollama model is pulled
+        if (llmConfig.LLM === 'ollama') {
+          const isPulled = await checkIfSelectedOllamaModelIsPulled(llmConfig.OLLAMA_MODEL);
+          if (!isPulled) {
+            router.push('/');
+            setLoadingToFalseAfterNavigatingTo('/');
+            return;
+          }
+        }
         if (route === '/') {
           router.push('/upload');
           setLoadingToFalseAfterNavigatingTo('/upload');
@@ -63,6 +72,13 @@ export function StoreInitializer({ children }: { children: React.ReactNode }) {
         setIsLoading(false);
       }
     }
+  }
+
+  const checkIfSelectedOllamaModelIsPulled = async (ollamaModel: string) => {
+    const response = await fetch('/api/v1/ppt/ollama/list-pulled-models');
+    const data = await response.json();
+    const pulledModels = data.map((model: any) => model.name);
+    return pulledModels.includes(ollamaModel);
   }
 
 

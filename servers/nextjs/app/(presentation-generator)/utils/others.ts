@@ -219,7 +219,11 @@ export const ThemeImagePrompt = {
 
 
 export function sanitizeFilename(filename: string): string {
-  return filename.replace(/[\\/:*?"<>|]/g, '_');
+  // Remove emojis and invalid filename characters
+  return filename
+    .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '') // Remove surrogate pairs (emojis)
+    .replace(/[^\x00-\x7F]/g, '') // Remove non-ASCII characters (including remaining emojis)
+    .replace(/[\\/:*?"<>|]/g, '_'); // Replace invalid filename characters
 }
 
 export function getStaticFileUrl(filepath: string): string {

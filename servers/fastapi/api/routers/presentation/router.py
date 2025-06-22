@@ -1,6 +1,6 @@
 from typing import Annotated, List, Optional
 import uuid
-from fastapi import APIRouter, Body, File, Form, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Body, File, Form, UploadFile
 
 from api.models import SessionModel
 from api.request_utils import RequestUtils
@@ -34,6 +34,13 @@ from api.routers.presentation.handlers.generate_outlines import (
 )
 from api.routers.presentation.handlers.get_presentation import GetPresentationHandler
 from api.routers.presentation.handlers.get_presentations import GetPresentationsHandler
+from api.routers.presentation.handlers.list_ollama_pulled_models import (
+    ListPulledOllamaModelsHandler,
+)
+from api.routers.presentation.handlers.list_supported_ollama_models import (
+    ListSupportedOllamaModelsHandler,
+)
+from api.routers.presentation.handlers.pull_ollama_model import PullOllamaModelHandler
 from api.routers.presentation.handlers.search_icon import SearchIconHandler
 from api.routers.presentation.handlers.search_image import SearchImageHandler
 from api.routers.presentation.handlers.update_parsed_document import (
@@ -59,6 +66,8 @@ from api.routers.presentation.models import (
     GeneratePresentationRequest,
     GeneratePresentationRequirementsRequest,
     GenerateResearchReportRequest,
+    OllamaModelStatusResponse,
+    OllamaSupportedModelsResponse,
     PresentationAndPath,
     PresentationAndPaths,
     PresentationAndSlides,
@@ -72,7 +81,7 @@ from api.routers.presentation.models import (
     PresentationUpdateRequest,
 )
 from api.sql_models import PresentationSqlModel
-from api.utils import handle_errors
+from api.utils.utils import handle_errors
 from ppt_generator.models.slide_model import SlideModel
 
 route_prefix = "/api/v1/ppt"
@@ -341,4 +350,39 @@ async def generate_presentation(data: Annotated[GeneratePresentationRequest, For
         GeneratePresentationHandler(presentation_id, data).post,
         logging_service,
         log_metadata,
+    )
+
+
+# Ollama Support
+@presentation_router.get(
+    "/ollama/list-supported-models", response_model=OllamaSupportedModelsResponse
+)
+async def list_supported_ollama_models():
+    request_utils = RequestUtils(f"{route_prefix}/ollama/list-supported-models")
+    logging_service, log_metadata = await request_utils.initialize_logger()
+    return await handle_errors(
+        ListSupportedOllamaModelsHandler().get, logging_service, log_metadata
+    )
+
+
+@presentation_router.get(
+    "/ollama/list-pulled-models", response_model=List[OllamaModelStatusResponse]
+)
+async def list_pulled_ollama_models():
+    request_utils = RequestUtils(f"{route_prefix}/ollama/list-pulled-models")
+    logging_service, log_metadata = await request_utils.initialize_logger()
+    return await handle_errors(
+        ListPulledOllamaModelsHandler().get, logging_service, log_metadata
+    )
+
+
+@presentation_router.get("/ollama/pull-model", response_model=OllamaModelStatusResponse)
+async def pull_ollama_model(name: str, background_tasks: BackgroundTasks):
+    request_utils = RequestUtils(f"{route_prefix}/ollama/pull-model")
+    logging_service, log_metadata = await request_utils.initialize_logger()
+    return await handle_errors(
+        PullOllamaModelHandler(name).get,
+        logging_service,
+        log_metadata,
+        background_tasks=background_tasks,
     )

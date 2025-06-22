@@ -303,13 +303,12 @@ const Header = ({
         duration={40}
       />
       <Announcement />
-      <Wrapper className="flex items-center justify-between py-2">
+      <Wrapper className="flex items-center justify-between py-1">
         <Link href="/dashboard" className="min-w-[162px]">
           <img
+            className="h-16"
             src="/logo-white.png"
             alt="Presentation logo"
-            width={162}
-            height={32}
           />
         </Link>
 

@@ -1,9 +1,10 @@
-import os
 from typing import Optional
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_openai import ChatOpenAI
 
+from api.utils.utils import get_large_model
+from api.utils.variable_length_models import (
+    get_presentation_markdown_model_with_n_slides,
+)
 from ppt_config_generator.models import PresentationMarkdownModel
 from ppt_generator.fix_validation_errors import get_validated_response
 
@@ -37,15 +38,16 @@ def get_prompt_template():
                 4. Develop comprehensive content using markdown structure:
                     * Use bullet points (- or *) for lists.
                     * Use **bold** for emphasis, *italic* for secondary emphasis, and `code` for technical terms.
-                    * Use > for important quotes or highlights.
-                5. Provide styling and formatting information for the presentation as notes.
+                5. Provide important points from prompt as notes.
                 
                 # Notes
-                - There must be exact number of slides as specified.
                 - Content must be generated for every slide.
                 - Images or Icons information provided in **Input** must be included in the **notes**.
                 - Notes should cleary define if it is for specific slide or for the presentation.
                 - Slide **body** should not contain slide **title**.
+                - Slide **title** should not contain "Slide 1", "Slide 2", etc.
+                - Slide **title** should not be in markdown format.
+                - There must be exact **Number of Slides** as specified.
                 """,
             ),
             (
@@ -62,17 +64,14 @@ async def generate_ppt_content(
     language: Optional[str] = None,
     content: Optional[str] = None,
 ) -> PresentationMarkdownModel:
-    model = (
-        ChatOpenAI(model="gpt-4.1")
-        if os.getenv("LLM") == "openai"
-        else ChatGoogleGenerativeAI(model="gemini-2.0-flash")
-    )
+    model = get_large_model()
+    response_model = get_presentation_markdown_model_with_n_slides(n_slides)
 
     chain = get_prompt_template() | model.with_structured_output(
-        PresentationMarkdownModel.model_json_schema()
+        response_model.model_json_schema()
     )
 
-    response = await get_validated_response(
+    return await get_validated_response(
         chain,
         {
             "prompt": prompt,
@@ -80,6 +79,6 @@ async def generate_ppt_content(
             "language": language or "English",
             "content": content,
         },
+        response_model,
         PresentationMarkdownModel,
     )
-    return response

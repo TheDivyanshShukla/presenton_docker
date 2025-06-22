@@ -2,7 +2,7 @@ import asyncio
 from typing import List
 
 from api.models import SSEStatusResponse
-from api.utils import get_presentation_images_dir
+from api.utils.utils import get_presentation_images_dir
 from image_processor.icons_finder import get_icon
 from image_processor.icons_vectorstore_utils import get_icons_vectorstore
 from image_processor.images_finder import generate_image
