@@ -42,7 +42,7 @@ async def get_report(query: str, language: Optional[str]):
     model = (
         ChatOpenAI(model="gpt-4.1-nano")
         if os.getenv("LLM") == "openai"
-        else ChatGoogleGenerativeAI(model="gemini-2.0-flash")
+        else ChatGoogleGenerativeAI(model=os.getenv("GOOGLE_MODEL","gemini-2.0-flash"))
     )
     chain = prompt_template | model
 
