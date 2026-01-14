@@ -12,7 +12,7 @@ services:
     environment:
       - PORT=${PORT:-80}
       - NEXTJS_PORT=${NEXTJS_PORT:-31211}
-      - FASTAPI_PORT=${FASTAPI_PORT:-80321}
+      - FASTAPI_PORT=${FASTAPI_PORT:-50321}
       - CAN_CHANGE_KEYS=${CAN_CHANGE_KEYS}
       - LLM=${LLM}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
@@ -27,13 +27,13 @@ services:
     ports:
       - "${PORT:-5000}:${PORT:-80}"
       - "${NEXTJS_PORT:-31211}:${NEXTJS_PORT:-31211}"
-      - "${FASTAPI_PORT:-80321}:${FASTAPI_PORT:-80321}"
+      - "${FASTAPI_PORT:-50321}:${FASTAPI_PORT:-50321}"
     volumes:
       - .:/app
     environment:
       - PORT=${PORT:-80}
       - NEXTJS_PORT=${NEXTJS_PORT:-31211}
-      - FASTAPI_PORT=${FASTAPI_PORT:-80321}
+      - FASTAPI_PORT=${FASTAPI_PORT:-50321}
       - NODE_ENV=development
       - CAN_CHANGE_KEYS=${CAN_CHANGE_KEYS}
       - LLM=${LLM}

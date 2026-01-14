@@ -47,4 +47,4 @@ COPY nginx.conf /etc/nginx/nginx.conf
 EXPOSE 80
 
 # Start the servers
-CMD ["/bin/bash", "-c", "sed -i \"s/listen 80;/listen ${PORT:-80};/\" /etc/nginx/nginx.conf && sed -i \"s/localhost:3000/localhost:${NEXTJS_PORT:-31211}/\" /etc/nginx/nginx.conf && sed -i \"s/localhost:8000/localhost:${FASTAPI_PORT:-80321}/\" /etc/nginx/nginx.conf && service nginx start && service redis-server start && node /app/start.js"]
+CMD ["/bin/bash", "-c", "sed -i \"s/listen 80;/listen ${PORT:-80};/\" /etc/nginx/nginx.conf && sed -i \"s/localhost:3000/localhost:${NEXTJS_PORT:-31211}/\" /etc/nginx/nginx.conf && sed -i \"s/localhost:8000/localhost:${FASTAPI_PORT:-50321}/\" /etc/nginx/nginx.conf && service nginx start && service redis-server start && node /app/start.js"]
