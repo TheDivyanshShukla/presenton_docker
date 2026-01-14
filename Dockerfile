@@ -15,9 +15,6 @@ WORKDIR /app
 ENV APP_DATA_DIRECTORY=/app/user_data
 ENV TEMP_DIRECTORY=/tmp/presenton
 
-# Install ollama
-RUN curl -fsSL https://ollama.com/install.sh | sh
-
 # Install dependencies for FastAPI
 COPY servers/fastapi/requirements.txt ./
 RUN pip install -r requirements.txt
@@ -50,4 +47,4 @@ COPY nginx.conf /etc/nginx/nginx.conf
 EXPOSE 80
 
 # Start the servers
-CMD ["/bin/bash", "-c", "ollama serve & service nginx start && service redis-server start && node /app/start.js"]
+CMD ["/bin/bash", "-c", "service nginx start && service redis-server start && node /app/start.js"]
